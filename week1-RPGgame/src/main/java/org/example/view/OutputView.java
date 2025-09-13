@@ -10,8 +10,25 @@ public class OutputView {
         System.out.println();
     }
 
+    public void printNameInput() {
+        System.out.print("캐릭터 이름을 입력하세요: ");
+    }
+
     public void printCharacterSelection() {
-        System.out.println("캐릭터를 선택하세요:");
+        System.out.println("\n====== 캐릭터 선택 ======");
+        System.out.println("1. 전사 (Warrior)");
+        System.out.println("   - 체력: 120 | 공격력: 15");
+        System.out.println();
+
+        System.out.println("2. 마법사 (Mage)");
+        System.out.println("   - 체력: 80 | 공격력: 20");
+        System.out.println();
+
+        System.out.println("3. 도적 (Rogue)");
+        System.out.println("   - 체력: 100 | 공격력: 18");
+        System.out.println();
+
+        System.out.print("선택하세요 (1-3): ");
     }
 
     public void printCharacterStatus() {

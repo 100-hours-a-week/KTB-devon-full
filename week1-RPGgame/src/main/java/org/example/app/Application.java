@@ -29,11 +29,14 @@ public class Application {
     }
 
     public void selectCharacter(){
+
+        outputView.printNameInput();
+        String characterName = inputView.getInputString();
+
         while (true) {
             try{
                 outputView.printCharacterSelection();
-                int select = inputView.getUserInput();
-                String characterName = "플레이어";
+                int select = inputView.getInputInt();
                 player = characterService.createCharacter(select, characterName);
                 break;
             } catch (IllegalArgumentException e){
