@@ -2,36 +2,48 @@ package org.example.app;
 
 import org.example.view.InputView;
 import org.example.view.OutputView;
+import org.example.service.CharacterService;
+import org.example.domain.character.Character;
 
 public class Application {
 
     private final InputView inputView = new InputView();
     private final OutputView outputView = new OutputView();
-
+    private final CharacterService characterService = new CharacterService();
+    private Character player;
 
     public void run(){
+        try {
+            outputView.printGameStart();
 
-        outputView.printGameStart();
+            selectCharacter();
 
-        // 캐릭터 선택 예외
+            if (player != null) {
+                startGame();
+            }
 
-        // 게임 시작
-
-        // 게임 진행
-
-
-
-    }
-
-    public void selectCharacter(){
-        try{
-            outputView.printCharacterSelection();
-            int select = inputView.getUserInput();
-            // 올바른 캐릭터 선택 검증
-
-        } catch (Exception e){
-
+        } catch (Exception e) {
+            outputView.printError(e.getMessage());
+            outputView.printGameEnd();
         }
     }
 
+    public void selectCharacter(){
+        while (true) {
+            try{
+                outputView.printCharacterSelection();
+                int select = inputView.getUserInput();
+                String characterName = "플레이어";
+                player = characterService.createCharacter(select, characterName);
+                break;
+            } catch (IllegalArgumentException e){
+                outputView.printInvalidInput();
+            }
+        }
+        outputView.printCharacterStatus();
+    }
+
+    private void startGame() {
+        // todo : 게임 로직
+    }
 }
