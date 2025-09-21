@@ -11,6 +11,9 @@ import store.repository.InMemoryProductRepository;
 import store.repository.ProductRepository;
 import store.view.InputView;
 import store.view.OutputView;
+import store.concurrent.StoreSimulation;
+import store.infra.ThreadPoolManager;
+import store.config.SimulationConfig;
 
 import java.util.List;
 
@@ -23,6 +26,8 @@ public class Mart {
 
     private final InventoryService inventoryService;
     private final CheckoutService checkoutService;
+    private final ThreadPoolManager threadPoolManager;
+    private StoreSimulation storeSimulation;
 
     public Mart(){
         InMemoryDatabase database = new InMemoryDatabase();
@@ -35,9 +40,16 @@ public class Mart {
 
         this.inventoryService = new InventoryService(productRepository);
         this.checkoutService = new CheckoutService(productRepository, inventoryService);
+        this.threadPoolManager = new ThreadPoolManager(SimulationConfig.THREAD_POOL_SIZE);
+        this.storeSimulation = new StoreSimulation(threadPoolManager, checkoutService, inventoryService);
     }
 
     public void start(){
+        // 시뮬레이션 시작
+        if (SimulationConfig.ENABLE_SIMULATION) {
+            storeSimulation.startSimulation(SimulationConfig.VIRTUAL_CUSTOMER_COUNT);
+        }
+
         while (true){
 
             outputView.displayWelcomeMessage();
@@ -50,6 +62,10 @@ public class Mart {
                 break;
             }
         }
+        if (SimulationConfig.ENABLE_SIMULATION) {
+            storeSimulation.stopSimulation();
+        }
+        threadPoolManager.shutdown();
     }
 
     private Order createOrder() {

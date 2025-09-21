@@ -5,11 +5,10 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 public class ThreadPoolManager {
-    private static final int THREAD_POOL_SIZE = 4;
     private final ExecutorService executorService;
 
-    public ThreadPoolManager() {
-        this.executorService = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
+    public ThreadPoolManager(int threadPoolSize) {
+        this.executorService = Executors.newFixedThreadPool(threadPoolSize);
     }
 
     public ExecutorService getExecutorService() {

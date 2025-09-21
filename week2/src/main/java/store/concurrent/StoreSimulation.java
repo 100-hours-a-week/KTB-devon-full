@@ -15,8 +15,8 @@ public class StoreSimulation {
     private final List<VirtualCustomer> customers;
     private VirtualSupplier supplier;
 
-    public StoreSimulation(CheckoutService checkoutService, InventoryService inventoryService) {
-        this.threadPoolManager = new ThreadPoolManager();
+    public StoreSimulation(ThreadPoolManager threadPoolManager, CheckoutService checkoutService, InventoryService inventoryService) {
+        this.threadPoolManager = threadPoolManager;
         this.checkoutService = checkoutService;
         this.inventoryService = inventoryService;
         this.customers = new ArrayList<>();
@@ -48,8 +48,6 @@ public class StoreSimulation {
             supplier.stop();
         }
 
-        // 스레드 풀 종료
-        threadPoolManager.shutdown();
     }
 
     public int getActiveCustomerCount() {
