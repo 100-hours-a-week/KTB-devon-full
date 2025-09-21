@@ -14,9 +14,11 @@ import java.util.List;
 public class CheckoutService {
 
     private final ProductRepository productRepository;
+    private final InventoryService inventoryService;
 
-    public CheckoutService(ProductRepository productRepository) {
+    public CheckoutService(ProductRepository productRepository, InventoryService inventoryService) {
         this.productRepository = productRepository;
+        this.inventoryService = inventoryService;
     }
 
     public Receipt processOrder(Order order) {
@@ -34,7 +36,7 @@ public class CheckoutService {
         String productName = totalOrder.getProductName();
         int totalQuantity = totalOrder.getQuantity();
 
-        productRepository.updateStock(productName, totalQuantity);
+        inventoryService.updateProductStock(productName, totalQuantity);
     }
 
     private Receipt generateReceipt(Order order) {

@@ -43,7 +43,7 @@ public class Mart {
         databaseInitializer.initializeData();
 
         this.inventoryService = new InventoryService(productRepository);
-        this.checkoutService = new CheckoutService(productRepository);
+        this.checkoutService = new CheckoutService(productRepository, inventoryService);
     }
 
     public void start(){

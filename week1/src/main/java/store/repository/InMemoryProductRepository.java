@@ -33,22 +33,6 @@ public class InMemoryProductRepository implements ProductRepository {
     }
 
     @Override
-    public void updateStock(String productName, int quantity) {
-        Optional<Product> productOpt = findByName(productName);
-        if (productOpt.isEmpty()) {
-            throw new IllegalArgumentException(ErrorMessages.PRODUCT_NOT_FOUND);
-        }
-
-        Product product = productOpt.get();
-        try {
-            product.reduceStock(quantity);
-            save(product);
-        } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException(ErrorMessages.OUT_OF_STOCK);
-        }
-    }
-
-    @Override
     public boolean existsByName(String name) {
         return database.existsProduct(name);
     }

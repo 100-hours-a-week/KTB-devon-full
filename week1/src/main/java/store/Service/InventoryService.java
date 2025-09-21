@@ -35,4 +35,17 @@ public class InventoryService {
     public List<Product> getProducts() {
         return productRepository.findAll();
     }
+
+    // 재고 업데이트 비즈니스 로직
+    public void updateProductStock(String productName, int quantity) {
+        Product product = productRepository.findByName(productName)
+                .orElseThrow(() -> new IllegalArgumentException(ErrorMessages.PRODUCT_NOT_FOUND));
+
+        try {
+            product.reduceStock(quantity);
+            productRepository.save(product);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException(ErrorMessages.OUT_OF_STOCK);
+        }
+    }
 }

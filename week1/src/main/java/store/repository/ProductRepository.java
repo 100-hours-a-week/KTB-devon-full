@@ -8,6 +8,5 @@ public interface ProductRepository {
     Optional<Product> findByName(String name);
     List<Product> findAll();
     void save(Product product);
-    void updateStock(String productName, int quantity);
     boolean existsByName(String name);
 }
