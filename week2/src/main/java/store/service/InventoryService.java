@@ -4,6 +4,9 @@ import store.domain.product.Product;
 import store.domain.order.ProductOrder;
 import store.repository.ProductRepository;
 import store.utils.ErrorMessages;
+import store.event.EventPublisher;
+import store.event.StockEvent;
+import store.event.StockEventType;
 
 import java.util.List;
 import java.util.Optional;
@@ -12,9 +15,11 @@ import java.util.stream.Collectors;
 public class InventoryService {
 
     private final ProductRepository productRepository;
+    private final EventPublisher eventPublisher;
 
     public InventoryService(ProductRepository productRepository) {
         this.productRepository = productRepository;
+        this.eventPublisher = EventPublisher.getInstance();
     }
 
     // 재고 확인 및 검증
@@ -39,6 +44,13 @@ public class InventoryService {
         if (result.isEmpty()) {
             throw new IllegalArgumentException(ErrorMessages.PRODUCT_NOT_FOUND);
         }
+
+        // 재고 감소 후 품절 체크
+        Product product = result.get();
+        if (product.getStock() == 0) {
+            StockEvent event = new StockEvent(productName, 0, StockEventType.OUT_OF_STOCK);
+            eventPublisher.publishStockEvent(event);
+        }
     }
 
     // 재고 보충
@@ -46,8 +58,16 @@ public class InventoryService {
         Optional<Product> productOpt = productRepository.findByName(productName);
         if (productOpt.isPresent()) {
             Product product = productOpt.get();
+            boolean wasOutOfStock = product.getStock() == 0;
+
             product.addStock(quantity);
             productRepository.save(product);
+
+            // 품절 상태에서 재입고된 경우 이벤트 발행
+            if (wasOutOfStock && quantity > 0) {
+                StockEvent event = new StockEvent(productName, product.getStock(), StockEventType.RESTOCKED);
+                eventPublisher.publishStockEvent(event);
+            }
         }
     }
 
@@ -60,10 +80,7 @@ public class InventoryService {
 
     // 재고 예약 (주문 생성시 사용)
     public synchronized void reserveStock(List<ProductOrder> productOrders) {
-        // 1. 먼저 모든 상품의 재고 확인
         checkProductStock(productOrders);
-
-        // 2. 재고 예약 (실제 차감)
         for (ProductOrder order : productOrders) {
             updateProductStock(order.getProductName(), order.getQuantity());
         }

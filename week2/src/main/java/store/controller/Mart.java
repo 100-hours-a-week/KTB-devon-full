@@ -17,6 +17,8 @@ import store.view.OutputView;
 import store.concurrent.StoreSimulation;
 import store.infra.ThreadPoolManager;
 import store.config.AppConfig;
+import store.event.EventPublisher;
+import store.notification.ConsoleNotificationService;
 
 import java.util.List;
 import java.util.Optional;
@@ -52,6 +54,15 @@ public class Mart {
         this.checkoutService = new CheckoutService(productRepository);
         this.orderService = new OrderService(orderRepository, inventoryService);
         this.storeSimulation = new StoreSimulation(threadPoolManager, inventoryService, orderService);
+
+        // 이벤트 알림 서비스 등록
+        setupNotificationService();
+    }
+
+    private void setupNotificationService() {
+        EventPublisher eventPublisher = EventPublisher.getInstance();
+        ConsoleNotificationService notificationService = new ConsoleNotificationService();
+        eventPublisher.subscribe(notificationService);
     }
 
     public void start(){
@@ -85,6 +96,9 @@ public class Mart {
         if (AppConfig.ENABLE_SIMULATION) {
             storeSimulation.stopSimulation();
         }
+
+        // 이벤트 퍼블리셔 종료
+        EventPublisher.getInstance().shutdown();
         threadPoolManager.shutdown();
     }
 
