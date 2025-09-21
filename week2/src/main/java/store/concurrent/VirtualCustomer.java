@@ -3,22 +3,23 @@ package store.concurrent;
 import store.domain.order.Order;
 import store.domain.order.ProductOrder;
 import store.domain.product.Product;
-import store.service.CheckoutService;
 import store.service.InventoryService;
+import store.service.OrderService;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
 
 public class VirtualCustomer implements Runnable {
-    private final CheckoutService checkoutService;
     private final InventoryService inventoryService;
+    private final OrderService orderService;
     private final Random random;
     private volatile boolean running = true;
 
-    public VirtualCustomer(CheckoutService checkoutService, InventoryService inventoryService) {
-        this.checkoutService = checkoutService;
+    public VirtualCustomer(InventoryService inventoryService, OrderService orderService) {
         this.inventoryService = inventoryService;
+        this.orderService = orderService;
         this.random = new Random();
     }
 
@@ -41,30 +42,32 @@ public class VirtualCustomer implements Runnable {
 
     private void attemptPurchase() {
         try {
-            // 재고 조회
+            // 1. 재고 조회
             List<Product> availableProducts = inventoryService.getProducts();
             if (availableProducts.isEmpty()) {
                 return;
             }
 
-            // 랜덤 상품 선택
+            // 2. 랜덤 상품 선택
             Product selectedProduct = availableProducts.get(random.nextInt(availableProducts.size()));
 
-            // 재고가 있는지 확인
+            // 3. 재고가 있는지 확인
             if (selectedProduct.getStock() <= 0) {
                 return;
             }
 
-            // 1 ~ 재고개수 중 랜덤 수량 구매
+            // 4. 1 ~ 재고개수 중 랜덤 수량 선택
             int quantity = random.nextInt(selectedProduct.getStock()) + 1;
 
-            // 주문 생성
+            // 5. 주문 생성 (재고 예약)
             List<ProductOrder> productOrders = new ArrayList<>();
             productOrders.add(new ProductOrder(selectedProduct.getName(), quantity));
-            Order order = new Order(productOrders);
+            String orderId = orderService.createOrder(productOrders);
 
-            // 주문 처리
-            checkoutService.processOrder(order);
+            // 6. 주문 확정 (구매 완료)
+            orderService.confirmOrder(orderId);
+
+            // 영수증은 가상 고객에게 불필요하므로 생략
 
         } catch (Exception e) {
             // 실패시 무시하고 다음 사이클에서 재시도

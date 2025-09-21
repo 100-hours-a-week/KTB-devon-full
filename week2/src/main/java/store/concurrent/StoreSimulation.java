@@ -1,8 +1,8 @@
 package store.concurrent;
 
 import store.infra.ThreadPoolManager;
-import store.service.CheckoutService;
 import store.service.InventoryService;
+import store.service.OrderService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,15 +10,15 @@ import java.util.concurrent.ExecutorService;
 
 public class StoreSimulation {
     private final ThreadPoolManager threadPoolManager;
-    private final CheckoutService checkoutService;
     private final InventoryService inventoryService;
+    private final OrderService orderService;
     private final List<VirtualCustomer> customers;
     private VirtualSupplier supplier;
 
-    public StoreSimulation(ThreadPoolManager threadPoolManager, CheckoutService checkoutService, InventoryService inventoryService) {
+    public StoreSimulation(ThreadPoolManager threadPoolManager, InventoryService inventoryService, OrderService orderService) {
         this.threadPoolManager = threadPoolManager;
-        this.checkoutService = checkoutService;
         this.inventoryService = inventoryService;
+        this.orderService = orderService;
         this.customers = new ArrayList<>();
     }
 
@@ -27,7 +27,7 @@ public class StoreSimulation {
 
         // 가상 고객들 시작
         for (int i = 1; i <= customerCount; i++) {
-            VirtualCustomer customer = new VirtualCustomer(checkoutService, inventoryService);
+            VirtualCustomer customer = new VirtualCustomer(inventoryService, orderService);
             customers.add(customer);
             executor.submit(customer);
         }

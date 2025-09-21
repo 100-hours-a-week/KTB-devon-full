@@ -51,7 +51,7 @@ public class Mart {
         this.inventoryService = new InventoryService(productRepository);
         this.checkoutService = new CheckoutService(productRepository, inventoryService);
         this.orderService = new OrderService(orderRepository, inventoryService);
-        this.storeSimulation = new StoreSimulation(threadPoolManager, checkoutService, inventoryService);
+        this.storeSimulation = new StoreSimulation(threadPoolManager, inventoryService, orderService);
     }
 
     public void start(){
