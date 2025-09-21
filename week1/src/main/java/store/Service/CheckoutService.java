@@ -1,4 +1,4 @@
-package store.Service;
+package store.service;
 
 import store.domain.order.Order;
 import store.domain.product.Product;
@@ -33,7 +33,7 @@ public class CheckoutService {
         String productName = totalOrder.getProductName();
         int totalQuantity = totalOrder.getQuantity();
 
-        inventoryManager.reduceProductStock(productName, totalQuantity, false);
+        inventoryManager.reduceProductStock(productName, totalQuantity);
     }
 
     private Receipt generateReceipt(Order order) {

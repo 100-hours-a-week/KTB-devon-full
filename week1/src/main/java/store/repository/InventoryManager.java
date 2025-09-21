@@ -34,7 +34,7 @@ public class InventoryManager {
     }
 
     // 특정 제품의 재고를 요청한 수량만큼 감소
-    public void reduceProductStock(String productName, int quantity, boolean isPromotion) {
+    public void reduceProductStock(String productName, int quantity) {
         Product product = getProduct(productName);
         try {
             product.reduceStock(quantity);

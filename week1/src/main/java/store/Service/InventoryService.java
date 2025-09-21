@@ -1,4 +1,4 @@
-package store.Service;
+package store.service;
 
 import store.domain.product.Electronics;
 import store.domain.product.FreshProduct;

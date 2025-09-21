@@ -1,7 +1,7 @@
 package store.controller;
 
-import store.Service.CheckoutService;
-import store.Service.InventoryService;
+import store.service.CheckoutService;
+import store.service.InventoryService;
 import store.domain.order.Order;
 import store.domain.order.ProductOrder;
 import store.domain.order.Receipt;
