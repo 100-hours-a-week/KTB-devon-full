@@ -10,6 +10,7 @@ import store.utils.ErrorMessages;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class CheckoutService {
 
@@ -21,7 +22,9 @@ public class CheckoutService {
         this.inventoryService = inventoryService;
     }
 
-    public Receipt processOrder(Order order) {
+    public synchronized Receipt processOrder(Order order) {
+        inventoryService.checkProductStock(order.getTotalProductOrders());
+
         updateStock(order);
         return generateReceipt(order);
     }
@@ -64,6 +67,5 @@ public class CheckoutService {
     private int calculateAmount(List<ReceiptProduct> orders) {
         return orders.stream().mapToInt(order -> order.getTotalAmount()).sum();
     }
-
 
 }

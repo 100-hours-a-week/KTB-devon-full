@@ -1,11 +1,7 @@
 package store.service;
 
-import store.domain.product.Electronics;
-import store.domain.product.FreshProduct;
-import store.domain.product.LaptopProduct;
 import store.domain.product.Product;
 import store.domain.order.ProductOrder;
-import store.domain.product.SmartphoneProduct;
 import store.repository.ProductRepository;
 import store.utils.ErrorMessages;
 
@@ -22,7 +18,7 @@ public class InventoryService {
     }
 
     // 재고 확인 및 검증
-    public void checkProductStock(List<ProductOrder> productOrders) {
+    public synchronized void checkProductStock(List<ProductOrder> productOrders) {
         for (ProductOrder order : productOrders) {
             Product product = productRepository.findByName(order.getProductName())
                     .orElseThrow(() -> new IllegalArgumentException(ErrorMessages.PRODUCT_NOT_FOUND));
@@ -32,21 +28,21 @@ public class InventoryService {
         }
     }
 
-    // 모든 제고 확인
-    public List<Product> getProducts() {
+    // 모든 재고 확인
+    public synchronized List<Product> getProducts() {
         return productRepository.findAll();
     }
 
-    // 재고 감소 비즈니스 로직
-    public void updateProductStock(String productName, int quantity) {
+    // 재고 감소
+    public synchronized void updateProductStock(String productName, int quantity) {
         Optional<Product> result = productRepository.reduceProductStock(productName, quantity);
         if (result.isEmpty()) {
             throw new IllegalArgumentException(ErrorMessages.PRODUCT_NOT_FOUND);
         }
     }
 
-    // 재고 보충 메서드
-    public void restockProduct(String productName, int quantity) {
+    // 재고 보충
+    public synchronized void restockProduct(String productName, int quantity) {
         Optional<Product> productOpt = productRepository.findByName(productName);
         if (productOpt.isPresent()) {
             Product product = productOpt.get();
@@ -56,7 +52,7 @@ public class InventoryService {
     }
 
     // 재고 0인 상품들 조회
-    public List<Product> getOutOfStockProducts() {
+    public synchronized List<Product> getOutOfStockProducts() {
         return productRepository.findAll().stream()
                 .filter(product -> product.getStock() == 0)
                 .collect(Collectors.toList());
