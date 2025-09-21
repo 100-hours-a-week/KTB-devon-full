@@ -13,41 +13,44 @@ import store.view.InputView;
 import store.view.OutputView;
 import store.concurrent.StoreSimulation;
 import store.infra.ThreadPoolManager;
-import store.config.SimulationConfig;
+import store.config.AppConfig;
 
 import java.util.List;
 
 public class Mart {
 
-    final String productsDataPath = "products.md";
+
+
+    private final ThreadPoolManager threadPoolManager;
 
     private final InputView inputView;
     private final OutputView outputView;
 
     private final InventoryService inventoryService;
     private final CheckoutService checkoutService;
-    private final ThreadPoolManager threadPoolManager;
-    private StoreSimulation storeSimulation;
+
+    private final StoreSimulation storeSimulation;
 
     public Mart(){
         InMemoryDatabase database = new InMemoryDatabase();
-        DatabaseInitializer databaseInitializer = new DatabaseInitializer(database, productsDataPath);
+        DatabaseInitializer databaseInitializer = new DatabaseInitializer(database, AppConfig.PRODUCTS_DATA_PATH);
         ProductRepository productRepository = new InMemoryProductRepository(database);
         databaseInitializer.initializeData();
+
+        this.threadPoolManager = new ThreadPoolManager(AppConfig.THREAD_POOL_SIZE);
 
         this.inputView = new InputView();
         this.outputView = new OutputView();
 
         this.inventoryService = new InventoryService(productRepository);
         this.checkoutService = new CheckoutService(productRepository, inventoryService);
-        this.threadPoolManager = new ThreadPoolManager(SimulationConfig.THREAD_POOL_SIZE);
         this.storeSimulation = new StoreSimulation(threadPoolManager, checkoutService, inventoryService);
     }
 
     public void start(){
         // 시뮬레이션 시작
-        if (SimulationConfig.ENABLE_SIMULATION) {
-            storeSimulation.startSimulation(SimulationConfig.VIRTUAL_CUSTOMER_COUNT);
+        if (AppConfig.ENABLE_SIMULATION) {
+            storeSimulation.startSimulation(AppConfig.VIRTUAL_CUSTOMER_COUNT);
         }
 
         while (true){
@@ -62,7 +65,7 @@ public class Mart {
                 break;
             }
         }
-        if (SimulationConfig.ENABLE_SIMULATION) {
+        if (AppConfig.ENABLE_SIMULATION) {
             storeSimulation.stopSimulation();
         }
         threadPoolManager.shutdown();
