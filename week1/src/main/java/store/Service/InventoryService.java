@@ -35,42 +35,4 @@ public class InventoryService {
     public List<Product> getProducts() {
         return productRepository.findAll();
     }
-
-    public List<FreshProduct> getFreshProducts() {
-        return productRepository.findAll().stream()
-                .filter(product -> product instanceof FreshProduct)
-                .map(product -> (FreshProduct) product)
-                .collect(Collectors.toList());
-    }
-
-    public List<Electronics> getElectronicsProducts() {
-        return productRepository.findAll().stream()
-                .filter(product -> product instanceof Electronics)
-                .map(product -> (Electronics) product)
-                .collect(Collectors.toList());
-    }
-
-    public List<FreshProduct> getExpiredProducts() {
-        return getFreshProducts().stream()
-                .filter(FreshProduct::isExpired)
-                .collect(Collectors.toList());
-    }
-
-    public List<Electronics> getWarrantyProducts() {
-        return getElectronicsProducts().stream()
-                .filter(Electronics::hasWarranty)
-                .collect(Collectors.toList());
-    }
-
-    public long countSmartphones() {
-        return productRepository.findAll().stream()
-                .filter(product -> product instanceof SmartphoneProduct)
-                .count();
-    }
-
-    public long countLaptops() {
-        return productRepository.findAll().stream()
-                .filter(product -> product instanceof LaptopProduct)
-                .count();
-    }
 }
