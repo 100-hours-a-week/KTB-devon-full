@@ -10,5 +10,9 @@ public class ErrorMessages {
     public static final String ORDER_NOT_CONFIRMED = "확정되지 않은 주문입니다.";
     public static final String RECEIPT_GENERATION_FAILED = "영수증 생성 중 오류가 발생했습니다.";
     public static final String NO_ORDER_PRODUCTS = "주문 상품이 없습니다.";
+    public static final String ORDER_CREATION_FAILED = "주문 생성 실패";
+    public static final String ORDER_NOT_FOUND = "주문을 찾을 수 없습니다.";
+    public static final String ORDER_NOT_RESERVED = "예약된 주문이 아닙니다.";
+    public static final String ORDER_ALREADY_CONFIRMED = "이미 확정된 주문은 취소할 수 없습니다.";
 
 }
