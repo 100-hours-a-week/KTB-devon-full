@@ -1,8 +1,8 @@
-package store.repository;
+package store.repository.impl;
 
 import store.domain.product.Product;
 import store.infra.InMemoryDatabase;
-import store.utils.ErrorMessages;
+import store.repository.ProductRepository;
 import java.util.List;
 import java.util.Optional;
 

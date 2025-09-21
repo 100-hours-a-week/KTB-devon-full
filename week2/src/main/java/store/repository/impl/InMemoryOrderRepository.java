@@ -1,4 +1,4 @@
-package store.repository;
+package store.repository.impl;
 
 import store.domain.order.Order;
 import store.domain.order.OrderStatus;
@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
+import store.repository.OrderRepository;
 
 public class InMemoryOrderRepository implements OrderRepository {
     private final Map<String, Order> orders;
