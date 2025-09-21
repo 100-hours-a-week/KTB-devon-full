@@ -8,13 +8,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 
-public class CustomerSimulation {
+public class StoreSimulation {
     private final ThreadPoolManager threadPoolManager;
     private final CheckoutService checkoutService;
     private final InventoryService inventoryService;
     private final List<VirtualCustomer> customers;
+    private VirtualSupplier supplier;
 
-    public CustomerSimulation(CheckoutService checkoutService, InventoryService inventoryService) {
+    public StoreSimulation(CheckoutService checkoutService, InventoryService inventoryService) {
         this.threadPoolManager = new ThreadPoolManager();
         this.checkoutService = checkoutService;
         this.inventoryService = inventoryService;
@@ -24,12 +25,16 @@ public class CustomerSimulation {
     public void startSimulation(int customerCount) {
         ExecutorService executor = threadPoolManager.getExecutorService();
 
-        // 가상 고객들 생성 및 실행
+        // 가상 고객들 시작
         for (int i = 1; i <= customerCount; i++) {
-            VirtualCustomer customer = new VirtualCustomer( checkoutService, inventoryService);
+            VirtualCustomer customer = new VirtualCustomer(checkoutService, inventoryService);
             customers.add(customer);
             executor.submit(customer);
         }
+
+        // 가상 발주업체 시작
+        supplier = new VirtualSupplier(inventoryService);
+        executor.submit(supplier);
     }
 
     public void stopSimulation() {
@@ -38,11 +43,20 @@ public class CustomerSimulation {
             customer.stop();
         }
 
+        // 발주업체 중지
+        if (supplier != null) {
+            supplier.stop();
+        }
+
         // 스레드 풀 종료
         threadPoolManager.shutdown();
     }
 
     public int getActiveCustomerCount() {
         return customers.size();
+    }
+
+    public boolean isSupplierRunning() {
+        return supplier != null;
     }
 }
