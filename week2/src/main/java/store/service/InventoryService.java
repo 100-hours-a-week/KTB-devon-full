@@ -10,6 +10,7 @@ import store.repository.ProductRepository;
 import store.utils.ErrorMessages;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class InventoryService {
@@ -42,5 +43,22 @@ public class InventoryService {
         if (result.isEmpty()) {
             throw new IllegalArgumentException(ErrorMessages.PRODUCT_NOT_FOUND);
         }
+    }
+
+    // 재고 보충 메서드
+    public void restockProduct(String productName, int quantity) {
+        Optional<Product> productOpt = productRepository.findByName(productName);
+        if (productOpt.isPresent()) {
+            Product product = productOpt.get();
+            product.addStock(quantity);
+            productRepository.save(product);
+        }
+    }
+
+    // 재고 0인 상품들 조회
+    public List<Product> getOutOfStockProducts() {
+        return productRepository.findAll().stream()
+                .filter(product -> product.getStock() == 0)
+                .collect(Collectors.toList());
     }
 }

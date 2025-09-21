@@ -38,6 +38,10 @@ public abstract class Product {
         this.stock -= quantity;
     }
 
+    public void addStock(int quantity) {
+        this.stock += quantity;
+    }
+
     @Override
     public String toString() {
         if (stock > 0) {
