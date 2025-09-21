@@ -49,7 +49,7 @@ public class Mart {
         this.outputView = new OutputView();
 
         this.inventoryService = new InventoryService(productRepository);
-        this.checkoutService = new CheckoutService(productRepository, inventoryService);
+        this.checkoutService = new CheckoutService(productRepository);
         this.orderService = new OrderService(orderRepository, inventoryService);
         this.storeSimulation = new StoreSimulation(threadPoolManager, inventoryService, orderService);
     }
@@ -125,7 +125,7 @@ public class Mart {
             if (orderOpt.isPresent()) {
                 Order order = orderOpt.get();
                 orderService.confirmOrder(orderId);
-                Receipt receipt = checkoutService.processOrder(order);
+                Receipt receipt = checkoutService.generateReceipt(order);
                 outputView.displayReceipt(receipt);
             }
         } catch (Exception e) {

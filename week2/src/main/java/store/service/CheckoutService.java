@@ -10,42 +10,40 @@ import store.utils.ErrorMessages;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class CheckoutService {
 
     private final ProductRepository productRepository;
-    private final InventoryService inventoryService;
 
-    public CheckoutService(ProductRepository productRepository, InventoryService inventoryService) {
+    public CheckoutService(ProductRepository productRepository) {
         this.productRepository = productRepository;
-        this.inventoryService = inventoryService;
     }
 
-    // 주문 처리 - 이미 예약된 주문의 영수증만 생성
-    public synchronized Receipt processOrder(Order order) {
+    public synchronized Receipt generateReceipt(Order order) {
+        validateOrder(order);
+
+        try {
+            return createReceipt(order);
+        } catch (Exception e) {
+            throw new IllegalArgumentException(ErrorMessages.RECEIPT_GENERATION_FAILED + ": " + e.getMessage());
+        }
+    }
+
+    private void validateOrder(Order order) {
+        if (order == null) {
+            throw new IllegalArgumentException(ErrorMessages.INVALID_INPUT);
+        }
+
         if (!order.isConfirmed()) {
-            throw new IllegalArgumentException("확정되지 않은 주문입니다.");
+            throw new IllegalArgumentException(ErrorMessages.ORDER_NOT_CONFIRMED);
         }
 
-        // 재고는 이미 OrderService에서 차감되었으므로 영수증만 생성
-        return generateReceipt(order);
-    }
-
-    private void updateStock(Order order) {
-        for (ProductOrder totalOrder : order.getTotalProductOrders()) {
-            processStockForOrder(totalOrder);
+        if (order.getTotalProductOrders() == null || order.getTotalProductOrders().isEmpty()) {
+            throw new IllegalArgumentException(ErrorMessages.NO_ORDER_PRODUCTS);
         }
     }
 
-    private void processStockForOrder(ProductOrder totalOrder) {
-        String productName = totalOrder.getProductName();
-        int totalQuantity = totalOrder.getQuantity();
-
-        inventoryService.updateProductStock(productName, totalQuantity);
-    }
-
-    private Receipt generateReceipt(Order order) {
+    private Receipt createReceipt(Order order) {
         List<ReceiptProduct> productOrders = mappingReceiptProduct(order.getTotalProductOrders());
         int totalAmount = calculateAmount(productOrders);
         int finalAmount = totalAmount;
