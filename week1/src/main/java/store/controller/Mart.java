@@ -18,29 +18,20 @@ public class Mart {
 
     final String productsDataPath = "products.md";
 
-    InputView inputView;
-    OutputView outputView;
+    private final InputView inputView;
+    private final OutputView outputView;
 
-    InMemoryDatabase database;
-    DatabaseInitializer databaseInitializer;
-    ProductRepository productRepository;
-
-    InventoryService inventoryService;
-    CheckoutService checkoutService;
+    private final InventoryService inventoryService;
+    private final CheckoutService checkoutService;
 
     public Mart(){
-        initializeComponents();
-    }
+        InMemoryDatabase database = new InMemoryDatabase();
+        DatabaseInitializer databaseInitializer = new DatabaseInitializer(database, productsDataPath);
+        ProductRepository productRepository = new InMemoryProductRepository(database);
+        databaseInitializer.initializeData();
 
-    private void initializeComponents() {
         this.inputView = new InputView();
         this.outputView = new OutputView();
-
-        this.database = new InMemoryDatabase();
-        this.databaseInitializer = new DatabaseInitializer(database, productsDataPath);
-        this.productRepository = new InMemoryProductRepository(database);
-
-        databaseInitializer.initializeData();
 
         this.inventoryService = new InventoryService(productRepository);
         this.checkoutService = new CheckoutService(productRepository, inventoryService);
