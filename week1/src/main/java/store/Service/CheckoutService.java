@@ -5,17 +5,18 @@ import store.domain.product.Product;
 import store.domain.order.ProductOrder;
 import store.domain.order.Receipt;
 import store.domain.product.ReceiptProduct;
-import store.repository.InventoryManager;
+import store.repository.ProductRepository;
+import store.utils.ErrorMessages;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class CheckoutService {
 
-    private final InventoryManager inventoryManager;
+    private final ProductRepository productRepository;
 
-    public CheckoutService(InventoryManager inventoryManager) {
-        this.inventoryManager = inventoryManager;
+    public CheckoutService(ProductRepository productRepository) {
+        this.productRepository = productRepository;
     }
 
     public Receipt processOrder(Order order) {
@@ -33,7 +34,7 @@ public class CheckoutService {
         String productName = totalOrder.getProductName();
         int totalQuantity = totalOrder.getQuantity();
 
-        inventoryManager.reduceProductStock(productName, totalQuantity);
+        productRepository.updateStock(productName, totalQuantity);
     }
 
     private Receipt generateReceipt(Order order) {
@@ -50,7 +51,8 @@ public class CheckoutService {
     private  List<ReceiptProduct> mappingReceiptProduct(List<ProductOrder> orders){
         List<ReceiptProduct> products = new ArrayList<>();
         for(ProductOrder order : orders){
-            Product product = inventoryManager.getProduct(order.getProductName());
+            Product product = productRepository.findByName(order.getProductName())
+                    .orElseThrow(() -> new IllegalArgumentException(ErrorMessages.PRODUCT_NOT_FOUND));
 
             products.add(new ReceiptProduct(product.getName(), order.getQuantity(), product.getPrice()));
         }

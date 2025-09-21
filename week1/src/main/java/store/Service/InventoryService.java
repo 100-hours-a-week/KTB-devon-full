@@ -6,7 +6,7 @@ import store.domain.product.LaptopProduct;
 import store.domain.product.Product;
 import store.domain.order.ProductOrder;
 import store.domain.product.SmartphoneProduct;
-import store.repository.InventoryManager;
+import store.repository.ProductRepository;
 import store.utils.ErrorMessages;
 
 import java.util.List;
@@ -14,16 +14,17 @@ import java.util.stream.Collectors;
 
 public class InventoryService {
 
-    private final InventoryManager inventoryManager;
+    private final ProductRepository productRepository;
 
-    public InventoryService(InventoryManager inventoryManager) {
-        this.inventoryManager = inventoryManager;
+    public InventoryService(ProductRepository productRepository) {
+        this.productRepository = productRepository;
     }
 
     // 재고 확인 및 검증
     public void checkProductStock(List<ProductOrder> productOrders) {
         for (ProductOrder order : productOrders) {
-            Product product = inventoryManager.getProduct(order.getProductName());
+            Product product = productRepository.findByName(order.getProductName())
+                    .orElseThrow(() -> new IllegalArgumentException(ErrorMessages.PRODUCT_NOT_FOUND));
             if (!product.isStockAvailable(order.getQuantity())) {
                 throw new IllegalArgumentException(ErrorMessages.OUT_OF_STOCK);
             }
@@ -32,18 +33,18 @@ public class InventoryService {
 
     // 모든 제고 확인
     public List<Product> getProducts() {
-        return inventoryManager.getAllProducts();
+        return productRepository.findAll();
     }
 
     public List<FreshProduct> getFreshProducts() {
-        return inventoryManager.getAllProducts().stream()
+        return productRepository.findAll().stream()
                 .filter(product -> product instanceof FreshProduct)
                 .map(product -> (FreshProduct) product)
                 .collect(Collectors.toList());
     }
 
     public List<Electronics> getElectronicsProducts() {
-        return inventoryManager.getAllProducts().stream()
+        return productRepository.findAll().stream()
                 .filter(product -> product instanceof Electronics)
                 .map(product -> (Electronics) product)
                 .collect(Collectors.toList());
@@ -62,13 +63,13 @@ public class InventoryService {
     }
 
     public long countSmartphones() {
-        return inventoryManager.getAllProducts().stream()
+        return productRepository.findAll().stream()
                 .filter(product -> product instanceof SmartphoneProduct)
                 .count();
     }
 
     public long countLaptops() {
-        return inventoryManager.getAllProducts().stream()
+        return productRepository.findAll().stream()
                 .filter(product -> product instanceof LaptopProduct)
                 .count();
     }

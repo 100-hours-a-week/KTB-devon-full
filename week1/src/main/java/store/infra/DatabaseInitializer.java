@@ -1,45 +1,44 @@
 package store.infra;
 
+import store.domain.product.*;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
-import java.util.HashMap;
-import java.util.Map;
-import store.domain.product.AccessoryProduct;
-import store.domain.product.FreshProduct;
-import store.domain.product.GeneralClothingProduct;
-import store.domain.product.LaptopProduct;
-import store.domain.product.ProcessedFoodProduct;
-import store.domain.product.Product;
-import store.domain.product.SmartphoneProduct;
+import store.utils.ErrorMessages;
 
-public class ProductDataLoader {
+public class DatabaseInitializer {
+    private final InMemoryDatabase database;
+    private final String dataFilePath;
 
-    private String productDataPath;
-
-    public ProductDataLoader(String productDataPath){
-        this.productDataPath = productDataPath;
+    public DatabaseInitializer(InMemoryDatabase database, String dataFilePath) {
+        this.database = database;
+        this.dataFilePath = dataFilePath;
     }
 
-    public Map<String, Product> loadProducts() throws IOException {
-        Map<String, Product> productMap = new HashMap<>();
+    public void initializeData() {
+        try {
+            loadProductsFromFile();
+        } catch (IOException e) {
+            throw new IllegalStateException(ErrorMessages.FAILED_INITIALIZE_INVENTORY);
+        }
+    }
 
-        InputStream inputStream = getClass().getClassLoader().getResourceAsStream(productDataPath);
+    private void loadProductsFromFile() throws IOException {
+        InputStream inputStream = getClass().getClassLoader().getResourceAsStream(dataFilePath);
         if (inputStream == null) {
-            throw new IOException("Resource not found: " + productDataPath);
+            throw new IOException("Resource not found: " + dataFilePath);
         }
 
         String content = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
         String[] lines = content.split("\n");
 
         for (String line : lines) {
-            processLine(productMap, line);
+            processLine(line);
         }
-        return productMap;
     }
 
-    private void processLine(Map<String, Product> productMap, String line) {
+    private void processLine(String line) {
         line = line.trim();
         if (line.isBlank() || line.startsWith("name")) {
             return;
@@ -55,11 +54,13 @@ public class ProductDataLoader {
         int quantity = Integer.parseInt(fields[2].trim());
         String type = fields[3].trim();
 
-        createProductByType(productMap, name, price, quantity, type, fields);
+        Product product = createProductByType(name, price, quantity, type, fields);
+        if (product != null) {
+            database.insertProduct(product);
+        }
     }
 
-
-    private void createProductByType(Map<String, Product> productMap, String name, int price, int quantity, String type, String[] fields) {
+    private Product createProductByType(String name, int price, int quantity, String type, String[] fields) {
         Product product = null;
 
         switch (type) {
@@ -107,8 +108,8 @@ public class ProductDataLoader {
 
         if (product != null) {
             product.setStock(quantity);
-            productMap.put(name, product);
         }
-    }
 
+        return product;
+    }
 }

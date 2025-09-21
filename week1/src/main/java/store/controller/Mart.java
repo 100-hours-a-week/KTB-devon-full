@@ -5,8 +5,10 @@ import store.service.InventoryService;
 import store.domain.order.Order;
 import store.domain.order.ProductOrder;
 import store.domain.order.Receipt;
-import store.infra.ProductDataLoader;
-import store.repository.InventoryManager;
+import store.infra.DatabaseInitializer;
+import store.infra.InMemoryDatabase;
+import store.repository.InMemoryProductRepository;
+import store.repository.ProductRepository;
 import store.view.InputView;
 import store.view.OutputView;
 
@@ -19,9 +21,9 @@ public class Mart {
     InputView inputView;
     OutputView outputView;
 
-    ProductDataLoader productDataLoader;
-
-    InventoryManager inventoryManager;
+    InMemoryDatabase database;
+    DatabaseInitializer databaseInitializer;
+    ProductRepository productRepository;
 
     InventoryService inventoryService;
     CheckoutService checkoutService;
@@ -34,12 +36,14 @@ public class Mart {
         this.inputView = new InputView();
         this.outputView = new OutputView();
 
-        this.productDataLoader = new ProductDataLoader(productsDataPath);
+        this.database = new InMemoryDatabase();
+        this.databaseInitializer = new DatabaseInitializer(database, productsDataPath);
+        this.productRepository = new InMemoryProductRepository(database);
 
-        this.inventoryManager = new InventoryManager(productDataLoader);
+        databaseInitializer.initializeData();
 
-        this.inventoryService = new InventoryService(inventoryManager);
-        this.checkoutService = new CheckoutService(inventoryManager);
+        this.inventoryService = new InventoryService(productRepository);
+        this.checkoutService = new CheckoutService(productRepository);
     }
 
     public void start(){
