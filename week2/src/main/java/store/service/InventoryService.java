@@ -57,4 +57,22 @@ public class InventoryService {
                 .filter(product -> product.getStock() == 0)
                 .collect(Collectors.toList());
     }
+
+    // 재고 예약 (주문 생성시 사용)
+    public synchronized void reserveStock(List<ProductOrder> productOrders) {
+        // 1. 먼저 모든 상품의 재고 확인
+        checkProductStock(productOrders);
+
+        // 2. 재고 예약 (실제 차감)
+        for (ProductOrder order : productOrders) {
+            updateProductStock(order.getProductName(), order.getQuantity());
+        }
+    }
+
+    // 재고 예약 취소 (주문 취소시 사용)
+    public synchronized void cancelReservation(List<ProductOrder> productOrders) {
+        for (ProductOrder order : productOrders) {
+            restockProduct(order.getProductName(), order.getQuantity());
+        }
+    }
 }

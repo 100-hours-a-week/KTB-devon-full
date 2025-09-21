@@ -41,4 +41,16 @@ public class OutputView {
         System.out.println("[ERROR] " + message + " 다시 입력해 주세요.");
     }
 
+    public void displayOrderCreated(String orderId) {
+        System.out.println("\n✅ 주문이 생성되었습니다!");
+        System.out.println("주문 ID: " + orderId);
+        System.out.println("재고가 예약되었습니다.");
+    }
+
+    public void displayOrderCancelled(String orderId) {
+        System.out.println("\n❌ 주문이 취소되었습니다.");
+        System.out.println("주문 ID: " + orderId);
+        System.out.println("예약된 재고가 복원되었습니다.");
+    }
+
 }

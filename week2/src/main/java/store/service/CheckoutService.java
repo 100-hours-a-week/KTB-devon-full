@@ -22,10 +22,13 @@ public class CheckoutService {
         this.inventoryService = inventoryService;
     }
 
+    // 주문 처리 - 이미 예약된 주문의 영수증만 생성
     public synchronized Receipt processOrder(Order order) {
-        inventoryService.checkProductStock(order.getTotalProductOrders());
+        if (!order.isConfirmed()) {
+            throw new IllegalArgumentException("확정되지 않은 주문입니다.");
+        }
 
-        updateStock(order);
+        // 재고는 이미 OrderService에서 차감되었으므로 영수증만 생성
         return generateReceipt(order);
     }
 

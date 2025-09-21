@@ -56,6 +56,11 @@ public class InputView {
     }
 
 
+    public boolean confirmPurchase() {
+        System.out.println("구매를 확정하시겠습니까? (Y/N)");
+        return confirmAction();
+    }
+
     public boolean continueShopping() {
         System.out.println("감사합니다. 구매하고 싶은 다른 상품이 있나요? (Y/N)");
         return confirmAction();

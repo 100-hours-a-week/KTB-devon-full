@@ -2,13 +2,16 @@ package store.controller;
 
 import store.service.CheckoutService;
 import store.service.InventoryService;
+import store.service.OrderService;
 import store.domain.order.Order;
 import store.domain.order.ProductOrder;
 import store.domain.order.Receipt;
 import store.infra.DatabaseInitializer;
 import store.infra.InMemoryDatabase;
 import store.repository.InMemoryProductRepository;
+import store.repository.InMemoryOrderRepository;
 import store.repository.ProductRepository;
+import store.repository.OrderRepository;
 import store.view.InputView;
 import store.view.OutputView;
 import store.concurrent.StoreSimulation;
@@ -16,6 +19,7 @@ import store.infra.ThreadPoolManager;
 import store.config.AppConfig;
 
 import java.util.List;
+import java.util.Optional;
 
 public class Mart {
 
@@ -28,6 +32,7 @@ public class Mart {
 
     private final InventoryService inventoryService;
     private final CheckoutService checkoutService;
+    private final OrderService orderService;
 
     private final StoreSimulation storeSimulation;
 
@@ -35,6 +40,7 @@ public class Mart {
         InMemoryDatabase database = new InMemoryDatabase();
         DatabaseInitializer databaseInitializer = new DatabaseInitializer(database, AppConfig.PRODUCTS_DATA_PATH);
         ProductRepository productRepository = new InMemoryProductRepository(database);
+        OrderRepository orderRepository = new InMemoryOrderRepository();
         databaseInitializer.initializeData();
 
         this.threadPoolManager = new ThreadPoolManager(AppConfig.THREAD_POOL_SIZE);
@@ -44,6 +50,7 @@ public class Mart {
 
         this.inventoryService = new InventoryService(productRepository);
         this.checkoutService = new CheckoutService(productRepository, inventoryService);
+        this.orderService = new OrderService(orderRepository, inventoryService);
         this.storeSimulation = new StoreSimulation(threadPoolManager, checkoutService, inventoryService);
     }
 
@@ -58,8 +65,18 @@ public class Mart {
             outputView.displayWelcomeMessage();
             outputView.displayProductList(inventoryService.getProducts());
 
-            Order order = createOrder();
-            processCheckout(order);
+            // 1. 주문 생성 (재고 예약)
+            String orderId = createOrderWithReservation();
+            if (orderId == null) {
+                continue; // 주문 생성 실패시 다시 시도
+            }
+
+            // 2. 구매 확정 여부 묻기
+            if (inputView.confirmPurchase()) {
+                processCheckout(orderId);
+            } else {
+                cancelOrder(orderId);
+            }
 
             if(!inputView.continueShopping()){
                 break;
@@ -71,26 +88,58 @@ public class Mart {
         threadPoolManager.shutdown();
     }
 
-    private Order createOrder() {
+    // 주문 생성 및 재고 예약
+    private String createOrderWithReservation() {
         List<ProductOrder> orders = getProductOrders();
-        return new Order(orders);
+        if (orders == null) {
+            return null;
+        }
+
+        try {
+            String orderId = orderService.createOrder(orders);
+            outputView.displayOrderCreated(orderId);
+            return orderId;
+        } catch (IllegalArgumentException e) {
+            outputView.displayError(e.getMessage());
+            return null;
+        }
     }
 
     private List<ProductOrder> getProductOrders(){
         while (true){
             try{
                 List<ProductOrder> orders = inputView.getProductOrders();
-                inventoryService.checkProductStock(orders);
+                // 재고 확인은 OrderService에서 처리하므로 여기서는 제거
                 return orders;
             }catch (IllegalArgumentException e){
                 outputView.displayError(e.getMessage());
+                return null; // 입력 오류시 null 반환
             }
         }
     }
 
+    // 주문 확정 및 결제 처리
+    private void processCheckout(String orderId) {
+        try {
+            Optional<Order> orderOpt = orderService.getOrder(orderId);
+            if (orderOpt.isPresent()) {
+                Order order = orderOpt.get();
+                orderService.confirmOrder(orderId);
+                Receipt receipt = checkoutService.processOrder(order);
+                outputView.displayReceipt(receipt);
+            }
+        } catch (Exception e) {
+            outputView.displayError("결제 처리 실패: " + e.getMessage());
+        }
+    }
 
-    private void processCheckout(Order order) {
-        Receipt receipt = checkoutService.processOrder(order);
-        outputView.displayReceipt(receipt);
+    // 주문 취소
+    private void cancelOrder(String orderId) {
+        try {
+            orderService.cancelOrder(orderId);
+            outputView.displayOrderCancelled(orderId);
+        } catch (Exception e) {
+            outputView.displayError("주문 취소 실패: " + e.getMessage());
+        }
     }
 }
