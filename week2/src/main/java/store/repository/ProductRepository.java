@@ -9,4 +9,5 @@ public interface ProductRepository {
     List<Product> findAll();
     void save(Product product);
     boolean existsByName(String name);
+    Optional<Product> reduceProductStock(String productName, int quantity);
 }

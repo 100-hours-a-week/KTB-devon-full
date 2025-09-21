@@ -25,15 +25,15 @@ public class InMemoryProductRepository implements ProductRepository {
 
     @Override
     public void save(Product product) {
-        if (database.existsProduct(product.getName())) {
-            database.updateProduct(product);
-        } else {
-            database.insertProduct(product);
-        }
+        database.saveProduct(product);
     }
 
     @Override
     public boolean existsByName(String name) {
         return database.existsProduct(name);
+    }
+
+    public Optional<Product> reduceProductStock(String productName, int quantity) {
+        return database.reduceProductStock(productName, quantity);
     }
 }
